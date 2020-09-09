@@ -19,7 +19,7 @@ export default {
   data() {
     return {
       address_mode: "default", // default普通 cascader级联
-      address_data: "" // 选中地址
+      address_data: "[{\"code\":\"330000\",\"name\":\"浙江省\"},{\"code\":\"330400\",\"name\":\"嘉兴市\"},{\"code\":\"330411\",\"name\":\"秀洲区\"}]" // 选中地址
     };
   },
   methods: {
