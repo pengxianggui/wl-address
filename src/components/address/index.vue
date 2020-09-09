@@ -21,6 +21,7 @@
                 :size="size"
                 value-key="code"
                 placeholder="请选择城市"
+                v-if="level >= 1"
         >
             <el-option v-for="item in citys" :key="item.code" :label="item.name" :value="item"></el-option>
         </el-select>
@@ -33,6 +34,7 @@
                 :size="size"
                 value-key="code"
                 placeholder="请选择区/县"
+                v-if="level >= 2"
         >
             <el-option v-for="item in countys" :key="item.code" :label="item.name" :value="item"></el-option>
         </el-select>
@@ -58,7 +60,7 @@
     import {getProvince, getCity, getCounty} from "./address.js"; // 导入获取省市县
 
     export default {
-        name: "wl-address",
+        name: "vue-address",
         data() {
             return {
                 provinces: [], // 省份
@@ -88,17 +90,17 @@
             // 输入框尺寸
             size: {
                 type: String,
-                default: ""
+                default: () => ""
             },
             // 地址类型 default默认 cascader级联选择器
             type: {
                 type: String,
-                default: "default"
+                default: () => "default"
             },
             // 默认数据
-            address: {
+            value: {
                 type: String,
-                default: ""
+                default: () => ""
             },
             // 是否可搜索
             filterable: {
@@ -108,76 +110,111 @@
             // 是否可清空选项
             clearable: {
                 type: Boolean,
-                default: false
+                default: () => false
             },
             placeholder: {
                 type: String,
-                default: "请选择地址"
+                default: () => "请选择地址"
             },
             // 是否禁用
             disabled: {
                 type: Boolean,
-                default: false
+                default: () => false
             },
             // cascader模式选项分隔符
             separator: String,
             // cascader模式选项分隔符
             showAllLevels: {
                 type: Boolean,
-                default: true
+                default: () => true
+            },
+            level: {
+                type: Number,
+                default: () => 2,
+                validator: (value) => {
+                    return [0, 1, 2].indexOf(value) > -1
+                }
             }
         },
         created() {
-            this.provinces = getProvince();
+            this.provinces = getProvince(this.level);
             this.analysisDefaultAddress();
         },
         methods: {
             // 级联选择动态获取下级
             handleItemChange(val) {
+                const {level} = this
                 let [p_code, c_code] = val;
                 if (c_code) {
                     let act_city = this.citys.find(item => item.code === c_code);
-                    if (act_city.children.length > 0) return;
-                    this.countys = getCounty(act_city);
-                    act_city.children = this.countys;
+                    if (act_city.children.length > 0) {
+                        return;
+                    }
+
+                    if (level >= 2) {
+                        this.countys = getCounty(act_city);
+                        act_city.children = this.countys;
+                    }
                 } else {
                     let act_province = this.provinces.find(item => item.code === p_code);
-                    if (act_province.children.length > 0) return;
-                    this.citys = getCity(act_province, true);
-                    act_province.children = this.citys;
+                    if (act_province.children.length > 0) {
+                        return;
+                    }
+
+                    if (level >= 1) {
+                        this.citys = getCity(act_province, level, true);
+                        act_province.children = this.citys;
+                    }
                 }
+
+                this.getCascaderVal(val)
             },
             // 选择完毕数据组装
             getCascaderVal(val) {
                 if (val.length === 0) {
-                    this.$emit("update:address", "");
+                    this.$emit("input", "");
                     return
                 }
                 let [pro, cit, con] = val;
                 this.province_act = this.provinces.find(item => item.code === pro);
-                if (con) {
-                    this.city_act = this.province_act.children.find(
-                        item => item.code === cit
-                    );
-                    this.county_act = this.city_act.children.find(
-                        item => item.code === con
-                    );
-                } else {
-                    this.city_act = this.province_act;
-                    this.county_act = this.city_act.children.find(
-                        item => item.code === cit
-                    );
+
+                const address = [{
+                    code: this.province_act.code, name: this.province_act.name
+                }]
+
+                if (cit) {
+                    this.city_act = this.province_act.children.find(item => item.code === cit) // TODO
+                    address.push({
+                        code: this.city_act.code, name: this.city_act.name
+                    })
                 }
 
-                let {code: pro_code, name: pro_name} = this.province_act;
-                let {code: cit_code, name: cit_name} = this.city_act;
-                let {code: cou_code, name: cou_name} = this.county_act;
-                let string_address = JSON.stringify([
-                    {code: pro_code, name: pro_name},
-                    {code: cit_code, name: cit_name},
-                    {code: cou_code, name: cou_name}
-                ]);
-                this.$emit("update:address", string_address);
+                if (con) {
+                    this.county_act = this.city_act.children.find(item => item.code === con)
+                    address.push({
+                        code: this.county_act.code, name: this.county_act.name
+                    })
+                }
+                //
+                // if (con) {
+                //     this.city_act = this.province_act.children.find(
+                //         item => item.code === cit
+                //     );
+                //     this.county_act = this.city_act.children.find(
+                //         item => item.code === con
+                //     );
+                // } else {
+                //     this.city_act = this.province_act;
+                //     this.county_act = this.city_act.children.find(
+                //         item => item.code === cit
+                //     );
+                // }
+
+                // let {code: pro_code, name: pro_name} = this.province_act;
+                // let {code: cit_code, name: cit_name} = this.city_act;
+                // let {code: cou_code, name: cou_name} = this.county_act;
+                let string_address = JSON.stringify(address);
+                this.$emit("input", string_address);
             },
             // 省份更改
             provinceChange(val) {
@@ -190,7 +227,13 @@
                     name: ""
                 };
                 this.countys = [];
-                this.citys = getCity(val);
+                this.citys = getCity(val, this.level);
+
+                const {province_act: {code, name}} = this
+                this.$emit("input", JSON.stringify([{
+                    code: code,
+                    name: name
+                }]));
             },
             // 城市更改
             citysChange(val) {
@@ -199,6 +242,12 @@
                     name: ""
                 };
                 this.countys = getCounty(val);
+
+                const {province_act: {code: pro_code, name: pro_name}, city_act: {code: cit_code, name: cit_name}} = this
+                this.$emit("input", JSON.stringify([
+                    {code: pro_code, name: pro_name},
+                    {code: cit_code, name: cit_name}
+                ]));
             },
             // 县更改
             countysChange(val) {
@@ -211,14 +260,14 @@
                     {code: cit_code, name: cit_name},
                     {code: cou_code, name: cou_name}
                 ]);
-                this.$emit("update:address", string_address);
+                this.$emit("input", string_address);
             },
             // 解析默认地址
             analysisDefaultAddress() {
-                if (!this.address) return;
+                if (!this.value) return;
                 let address = "";
                 try {
-                    address = JSON.parse(this.address) || [];
+                    address = JSON.parse(this.value) || [];
                 } catch (error) {
                     console.log("地址信息不合规范:" + error);
                 }
@@ -232,7 +281,7 @@
                     ] = address;
 
                     if (this.province_act.code) {
-                        this.citys = getCity(this.province_act);
+                        this.citys = getCity(this.province_act, this.level);
                     }
 
                     if (this.city_act.code) {
@@ -251,7 +300,7 @@
             cascaderData(val) {
                 let [p_code, c_code, n_code] = val;
                 let act_province = this.provinces.find(item => item.code === p_code);
-                this.citys = getCity(act_province, true);
+                this.citys = getCity(act_province, this.level, true);
                 act_province.children = this.citys;
                 if (n_code) {
                     let act_city = this.citys.find(item => item.code === c_code);

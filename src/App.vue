@@ -4,7 +4,7 @@
       模式：三个下拉框联动模式；一个下拉框级联模式；&nbsp;&nbsp;
       <button @click="changeAddressMode">当前模式：{{ address_mode }}</button>
     </h4>
-    <wlAddress class="my-wl-address" :type="address_mode" :address.sync="address_data"></wlAddress>
+    <wlAddress class="my-wl-address" :type="address_mode" v-model="address_data" :level="2"></wlAddress>
   </div>
 </template>
 
@@ -18,8 +18,8 @@ export default {
   },
   data() {
     return {
-      address_mode: "default", // default普通 cascader级联
-      address_data: "[{\"code\":\"330000\",\"name\":\"浙江省\"},{\"code\":\"330400\",\"name\":\"嘉兴市\"},{\"code\":\"330411\",\"name\":\"秀洲区\"}]" // 选中地址
+      address_mode: "cascader", // default普通 cascader 级联
+      address_data: "" // 选中地址
     };
   },
   methods: {

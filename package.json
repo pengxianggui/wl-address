@@ -1,21 +1,18 @@
 {
-  "name": "wl-address",
-  "version": "0.2.3",
+  "name": "@pxg/vue-address",
+  "version": "0.0.4",
   "private": false,
-  "author": "weilan",
+  "author": "pengxianggui",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/hql7/wl-address/issues"
-  },
-  "homepage": "https://github.com/hql7/wl-address#readme",
   "keyword": "address Three-levelLinkage vue elementUi provinces cities counties",
-  "main": "lib/wl-address.umd.min.js",
-  "description": "一个基于vue和element-ui的省市县三级地址联动插件，数据本地化。A three-level address linkage plug-in for provinces, cities and counties based on Vue and element-ui, data localization",
+  "main": "lib/vue-address.umd.min.js",
+  "description": "从https://github.com/hql7/wl-address fork 而来. 一个基于vue和element-ui的省市县三级地址联动插件，数据本地化。A three-level address linkage plug-in for provinces, cities and counties based on Vue and element-ui, data localization",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lib": "vue-cli-service build --target lib --name wl-address --dest lib src/components/index.js",
-    "lint": "vue-cli-service lint"
+    "lib": "vue-cli-service build --target lib --name vue-address --dest lib src/components/index.js",
+    "lint": "vue-cli-service lint",
+    "release": "npm run lib && npm publish --access public --registry https://registry.npmjs.org/"
   },
   "dependencies": {
     "core-js": "^2.6.5",
@@ -36,7 +33,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+git@github.com:hql7/wl-address.git"
+    "url": "git+git@github.com:pengxianggui/wl-address.git"
   },
   "eslintConfig": {
     "root": true,
